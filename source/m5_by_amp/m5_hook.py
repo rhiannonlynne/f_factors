@@ -18,8 +18,20 @@ def init(menu_button=None):
               ("User m5 r", "User m5 r"),
               ("User m5 i", "User m5 i"),
               ("User m5 z", "User m5 z"),
-              ("User m5 y", "User m5 y")]
-
+              ("User m5 y", "User m5 y"),
+              ("User fS", "User fS"),
+              ("User Tu", "User Tu"),
+              ("User Tg", "User Tg"),
+              ("User Tr", "User Tr"),
+              ("User Ti", "User Ti"),
+              ("User Tz", "User Tz"),
+              ("User Ty", "User Ty"),  
+              ("User Su", "User Su"),
+              ("User Sg", "User Sg"),
+              ("User Sr", "User Sr"),
+              ("User Si", "User Si"),
+              ("User Sz", "User Sz"),
+              ("User Sy", "User Sy")]
     menu_button.menu = my_menu
 
     return 0
@@ -39,9 +51,15 @@ def hook(run=None, mode=None, raft=None, ccd=None, test_cache=None, test=None, r
 
     myq = ' '.join(test.split(' ')[1:])
     print('-----------', test)
-    if 'm5' in myq:
+    if 'm5' in myq or 'fS' in myq:
         idx = 'm5'
         f = myq.split(' ')[-1]
+    elif myq[0] == 'T':
+        idx = 'T'
+        f = myq[1]
+    elif myq[0] == 'S':
+        idx = 'S'
+        f = myq[1]
     else:
         idx = 'a'
         f = myq
@@ -89,8 +107,34 @@ def hook(run=None, mode=None, raft=None, ccd=None, test_cache=None, test=None, r
             save_hi = range_limits["max"]
             save_lo = range_limits["min"]
         #if save_hi == range_limits["max"] and save_lo == range_limits["min"]:
+    elif f == 'fS':
+        range_limits["state"] = True
+        if save_lo > 998:
+            
+            range_limits["min"] = 0.7
+            range_limits["max"] = 1.3      
+            save_hi = range_limits["max"]
+            save_lo = range_limits["min"]
+            
+    elif myq[0] == 'T':
+        range_limits["state"] = True
+        if save_lo > 998:
+            mymin = {'u':0.02, 'g':0.11, 'r':0.1, 'i':0.07, 'z':0.04, 'y':0.02}
+            range_limits["min"] = mymin[f]
+            mymax = {'u':0.05, 'g':0.1392, 'r':0.12, 'i':0.085, 'z':0.07, 'y':0.04}
+            range_limits["max"] = mymax[f]
+            save_hi = range_limits["max"]
+            save_lo = range_limits["min"]
   
-
+    elif myq[0] == 'S':
+        range_limits["state"] = True
+        if save_lo > 998:
+            mymin = {'u':0.02, 'g':0.14, 'r':0.11, 'i':0.08, 'z':0.05, 'y':0.025}
+            range_limits["min"] = mymin[f]
+            mymax = {'u':0.08, 'g':0.18, 'r':0.13, 'i':0.095, 'z':0.07, 'y':0.045}
+            range_limits["max"] = mymax[f]
+            save_hi = range_limits["max"]
+            save_lo = range_limits["min"]
 
     elif 'm5' in myq:
         m5min = {'u':23.4, 'g':24.6, 'r':24.3, 'i':23.6, 'z':22.9, 'y':21.7}
