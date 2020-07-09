@@ -63,7 +63,8 @@ for rname in rnames:
     detector0 = st.buildDetector(vendorDir, addLosses) #design QE from this vendor
     detector = Bandpass()
 
-    filterlist = tuple([s for s in filters] + ['fS'])
+    #filterlist = tuple([s for s in filters]+['fS']) # this would be in different order than below
+    filterlist = ['u', 'g', 'r', 'i', 'z', 'y', 'fS']
     alist = ('raDeg', 'decDeg', 'radDeg', 'effarea', 'readnoise')
     detectors = []
     for det in cam:
@@ -168,7 +169,7 @@ for rname in rnames:
                     print('These seem too LARGE ', k)
                     print(np.max(sb))
                     sb = 0
-                if np.max(sb)<0.01:
+                if np.max(sb)<0.2: #3 dead channels, 1 out of each of R01, R10, and R30; see camera confluence page table
                     print('dead channel: %s, max sb = %.2f'%(key, np.max(sb)))
                     continue;
 
