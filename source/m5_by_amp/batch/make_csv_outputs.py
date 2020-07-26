@@ -65,7 +65,7 @@ for rname in rnames:
 
     #filterlist = tuple([s for s in filters]+['fS']) # this would be in different order than below
     filterlist = ['u', 'g', 'r', 'i', 'z', 'y', 'fS']
-    alist = ('raDeg', 'decDeg', 'radDeg', 'effarea', 'readnoise')
+    alist = ('raDeg', 'decDeg', 'radDeg', 'effarea', 'readnoise', 'gain', 'saturation')
     detectors = []
     for det in cam:
         rname1, dname = det.getName().split('_')
@@ -92,6 +92,8 @@ for rname in rnames:
         raDeg = {}
         decDeg = {}
         readnoise = {}
+        gain = {}
+        saturation = {}        
         for amp in det:
             i = amp.getName()
             amp_point = amp.getBBox().getCenter()
@@ -100,6 +102,8 @@ for rname in rnames:
             #print(key, i, raDec)
 
             readnoise[i] = amp.getReadNoise()
+            gain[i] = amp.getGain()
+            saturation[i] = amp.getSaturation()
         adf[key].loc['raDeg'] = list(OrderedDict(sorted(raDeg.items())).values())
         adf[key].loc['decDeg'] = list(OrderedDict(sorted(decDeg.items())).values())
         adf[key].loc['readnoise'] = list(OrderedDict(sorted(readnoise.items())).values())
@@ -108,7 +112,8 @@ for rname in rnames:
         radius = angularSeparation(0., 0., adf[key]['raDeg'], adf[key]['decDeg'])
         adf[key].loc['radDeg'] = list(radius)
         adf[key].loc['effarea'] = list(np.interp(radius, vr, vv)*np.pi*(M1D/2)**2)
-
+        adf[key].loc['gain'] = list(OrderedDict(sorted(gain.items())).values())
+        adf[key].loc['saturation'] = list(OrderedDict(sorted(saturation.items())).values())
     ampList = list(OrderedDict(sorted(raDeg.items())).keys())
 
     # this is needed if there are only 6 QE measurements per amp
