@@ -5,7 +5,6 @@ import os
 import matplotlib.pyplot as plt
 from astropy import units as u
 import pandas as pd
-from collections import OrderedDict
 from scipy.interpolate import interp1d
 
 from lsst.geom import Point2D, Point2I
@@ -28,7 +27,7 @@ aa = np.loadtxt(vfile, skiprows=12)
 vr = aa[:,0]
 vv = aa[:,1]
 
-dd = pd.read_csv('raftInstall.csv',index_col=0)
+dd = pd.read_csv('../raftInstall.csv',index_col=0)
 rnames = []
 for i in dd.index:
     try:
@@ -104,18 +103,20 @@ for rname in rnames:
             readnoise[i] = amp.getReadNoise()
             gain[i] = amp.getGain()
             saturation[i] = amp.getSaturation()
-        adf[key].loc['raDeg'] = list(OrderedDict(sorted(raDeg.items())).values())
-        adf[key].loc['decDeg'] = list(OrderedDict(sorted(decDeg.items())).values())
-        adf[key].loc['readnoise'] = list(OrderedDict(sorted(readnoise.items())).values())
-
+        adf[key].loc['raDeg'] = list(raDeg.values())
+        adf[key].loc['decDeg'] = list(decDeg.values())
+        adf[key].loc['readnoise'] = list(readnoise.values())
+        print(adf[key].loc['raDeg'])
+        
         #effetive area
         radius = angularSeparation(0., 0., adf[key]['raDeg'], adf[key]['decDeg'])
         adf[key].loc['radDeg'] = list(radius)
         adf[key].loc['effarea'] = list(np.interp(radius, vr, vv)*np.pi*(M1D/2)**2)
-        adf[key].loc['gain'] = list(OrderedDict(sorted(gain.items())).values())
-        adf[key].loc['saturation'] = list(OrderedDict(sorted(saturation.items())).values())
-    ampList = list(OrderedDict(sorted(raDeg.items())).keys())
+        adf[key].loc['gain'] = list(gain.values())
+        adf[key].loc['saturation'] = list(saturation.values())
 
+    ampList = list(raDeg.keys())
+    
     # this is needed if there are only 6 QE measurements per amp
     idx = np.where(detector0.sb>0.01)
     idx1=idx[0][0]-1
@@ -221,7 +222,7 @@ for rname in rnames:
             if np.all(m5amp>0):
                 m5df[key]['fS'][iamp] = sum(omega*10**(0.8*(m5amp - m5SRD)))
 
-    dfDir = os.path.join('m5_output', rname)
+    dfDir = os.path.join('../m5_output', rname)
     if not os.path.exists(dfDir):
         os.mkdir(dfDir)
     dfPath = os.path.join(dfDir, 'adf_%s.csv'%rname)

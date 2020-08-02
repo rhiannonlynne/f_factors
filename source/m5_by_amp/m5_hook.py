@@ -13,6 +13,8 @@ def init(menu_button=None):
               ("User radDeg", "User radDeg"),
               ("User effarea", "User effarea"),
               ("User readnoise", "User readnoise"),
+              ("User gain", "User gain"),
+              ("User saturation", "User saturation"),
               ("User m5 u", "User m5 u"),
               ("User m5 g", "User m5 g"),
               ("User m5 r", "User m5 r"),
@@ -107,6 +109,23 @@ def hook(run=None, mode=None, raft=None, ccd=None, test_cache=None, test=None, r
             save_hi = range_limits["max"]
             save_lo = range_limits["min"]
         #if save_hi == range_limits["max"] and save_lo == range_limits["min"]:
+    elif f == 'gain':
+        range_limits["state"] = True
+        if save_lo > 998:
+
+            range_limits["min"] = 0.5
+            range_limits["max"] = 1.6
+            save_hi = range_limits["max"]
+            save_lo = range_limits["min"]
+    elif f == 'saturation':
+        range_limits["state"] = True
+        if save_lo > 998:
+
+            range_limits["min"] = 0.
+            range_limits["max"] = 300000
+            save_hi = range_limits["max"]
+            save_lo = range_limits["min"]
+
     elif f == 'fS':
         range_limits["state"] = True
         if save_lo > 998:
