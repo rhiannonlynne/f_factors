@@ -63,7 +63,7 @@ for rname in rnames:
     detector = Bandpass()
 
     #filterlist = tuple([s for s in filters]+['fS']) # this would be in different order than below
-    filterlist = ['u', 'g', 'r', 'i', 'z', 'y', 'fS']
+    filterlist = ['u', 'g', 'r', 'i', 'z', 'y', 'fS', 'u1', 'u2']
     alist = ('raDeg', 'decDeg', 'radDeg', 'effarea', 'readnoise', 'gain', 'saturation')
     detectors = []
     for det in cam:
@@ -221,6 +221,16 @@ for rname in rnames:
             m5amp = np.array([m5.m5[f] for f in fidx])
             if np.all(m5amp>0):
                 m5df[key]['fS'][iamp] = sum(omega*10**(0.8*(m5amp - m5SRD)))
+                
+            #what about u-band with 1min & 2 min visits?
+            m5 = st.makeM5(hardware, system, darksky=None, 
+                        exptime=30, nexp=2, readnoise=readnoise, othernoise=0, darkcurrent=0.2,
+                        effarea=effarea, X=1.0)
+            m5df[key]['u1'][iamp] = m5.m5['u']
+            m5 = st.makeM5(hardware, system, darksky=None, 
+                        exptime=60, nexp=2, readnoise=readnoise, othernoise=0, darkcurrent=0.2,
+                        effarea=effarea, X=1.0)
+            m5df[key]['u2'][iamp] = m5.m5['u']    
 
     dfDir = os.path.join('../m5_output', rname)
     if not os.path.exists(dfDir):

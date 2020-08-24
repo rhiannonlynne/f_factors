@@ -21,6 +21,8 @@ def init(menu_button=None):
               ("User m5 z", "User m5 z"),
               ("User m5 y", "User m5 y"),
               ("User fS", "User fS"),
+              ("User m5 u1", "User m5 u1"),
+              ("User m5 u2", "User m5 u2"),               
               ("User Tu", "User Tu"),
               ("User Tg", "User Tg"),
               ("User Tr", "User Tr"),
@@ -56,7 +58,7 @@ def hook(run=None, mode=None, raft=None, ccd=None, test_cache=None, test=None, r
         idx = 'm5'
         f = myq.split(' ')[-1]
         
-        centerV =  {'u': 24.238, 'g': 24.987, 'r': 24.503, 'i': 24.031, 'z': 23.428, 'y': 22.469}
+        centerV =  {'u': 24.238, 'g': 24.987, 'r': 24.503, 'i': 24.031, 'z': 23.428, 'y': 22.469, 'u1':24.716, 'u2':25.169}
         
     elif myq[0] == 'T':
         idx = 'T'
