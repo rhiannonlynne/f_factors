@@ -7,7 +7,7 @@ In each optical band, the m5 variation with amplifier takes into account 3 facto
 
 These have been verified to run on the LSP (https://lsst-lsp-stable.ncsa.illinois.edu).
 
-The notebooks are mostly for running things for individual rafts step by step, so that we can examine results along the way.
+The notebooks are mostly for running things for individual rafts step by step, so that we can examine results along the way. The main notebook is `m5_by_amp.ipynb`, which reads out the QE curves and read noise from DM butler, and uses code from `syseng_throughputs` to calculate m5.
 
 If you want to loop over all the rafts without examining the results for each, use the `.py` files.
 
