@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import copy
 import pandas as pd
 from scipy.interpolate import interp1d
 
@@ -28,7 +29,6 @@ print(DATADIR)
 butler = Butler(DATADIR)
 cam = butler.get('camera')
 
-
 detectors = []
 rafts = []
 chips = []
@@ -55,12 +55,12 @@ dd = pd.read_csv('raftInstall.csv',index_col=0)
 # Note that effarea is not in this list here, because it varies with field.
 # The read noise is not in this list either, because it varies by amp.
 
+
 exptime=15
 nexp=2
 othernoise=0
 darkcurrent=0.2
 X=1.0
-
 
 seeing_srd = {'u': 0.77,
              'g': 0.73,
@@ -68,7 +68,7 @@ seeing_srd = {'u': 0.77,
              'i': 0.67,
              'z': 0.65,
              'y': 0.63}
-
+# corresponds to fwhm500 = 0.475 with standard seeing model
 skymag_srd = {'u': 22.92,
              'g': 22.27,
              'r': 21.20,
@@ -115,6 +115,12 @@ for f in filters:
     system_nodet[f] = Bandpass()
     system_nodet[f].setBandpass(wavelen, sb * atmos.sb)
 
+# Read in backup vendors, if can't read QE from butler
+# Don't read losses here, even if adding above -- because we already included them above if desired
+vendorQE = {}
+vendorQE['e2v'] = st.buildDetector(defaultDirs['detector'] + '/../e2v', addLosses=False)
+vendorQE['ITL'] = st.buildDetector(defaultDirs['detector'] + '/../itl', addLosses=False)
+
 m5SRD = np.array([23.9, 25.0, 24.7, 24.0, 23.3, 22.1])
 # Nv1 from SRD table 24
 Nv1 = np.array([56, 80, 184, 184, 160, 160])
@@ -152,10 +158,8 @@ for det in cam:
         continue
 
     vendor = dd.vendor[raft]
-    vendorDir = defaultDirs['detector'] + '/../' + vendor.lower()
-    addLosses = False
-    # Get the design QE
-    detector0 = st.buildDetector(vendorDir, addLosses)  # design QE from this vendor
+
+    detector0 = copy.deepcopy(vendorQE[vendor])  # design QE from this vendor
     detector = Bandpass()
 
     # these values are filled in per amp for each raft/chip combo, then overwritten
@@ -202,9 +206,6 @@ for det in cam:
     x2 = detector0.wavelen[idx2]
     y2 = detector0.sb[idx2]
 
-    vendor = det.getSerial()[:3].lower()
-    vendor = dd.vendor[raft].lower()
-    vendorDir = defaultDirs['detector']+'/../'+vendor
     print('Calculating m5 for %s_%s'%(raft,chip))
 
     ampList = list(raDeg.keys())
@@ -247,6 +248,7 @@ for det in cam:
                 sb = 0
             if np.max(sb)<0.2: #3 dead channels, 1 out of each of R01, R10, and R30; see camera confluence page table
                 print('dead channel: %s %s, max sb = %.2f'%(key, amp.getName(), np.max(sb)))
+                sb = detector0.sb
                 continue;
                 
             detector.setBandpass(wavelen, sb)
@@ -260,11 +262,19 @@ for det in cam:
                 hardware[f].setBandpass(wavelen, sb)
                 sb = detector.sb * system_nodet[f].sb
                 system[f] = Bandpass()
-                system[f].setBandpass(wavelen, sb * atmos.sb)
+                system[f].setBandpass(wavelen, sb)
 
         except NoResults:
             print(f'AHHH {chip} {raft} failed to get butler qe data, using defaults')
-            hardware, system = st.buildHardwareAndSystem(defaultDirs)
+            hardware = {}
+            system = {}
+            for f in filters:
+                sb = detector0.sb * hardware_nodet[f].sb
+                hardware[f] = Bandpass()
+                hardware[f].setBandpass(wavelen, sb)
+                sb = detector.sb * system_nodet[f].sb
+                system[f] = Bandpass()
+                system[f].setBandpass(wavelen, sb)
             
         #calculate m5      
         iamp = ampList.index(amp.getName())
@@ -274,6 +284,7 @@ for det in cam:
         othernoise = 0
         darkcurrent = 0.2
 
+        #effarea = np.pi*(6.423/2*100)**2
         m5 = st.makeM5(hardware, system, darksky=darksky, sky_mags=skymag_srd,
                     exptime=15, nexp=2, readnoise=readnoise, othernoise=othernoise, darkcurrent=darkcurrent,
                     effarea=effarea, X=1.0, fwhm500=0.475)
@@ -295,13 +306,15 @@ for det in cam:
 
 # write output
 dfDir = os.path.join('m5_output')
+suffix = 'srd_novignetting'
+suffix = 'srd'
 if not os.path.exists(dfDir):
     os.mkdir(dfDir)
-dfPath = os.path.join(dfDir, f'adf_{series}.csv')
+dfPath = os.path.join(dfDir, f'adf_{series}_{suffix}.csv')
 adf.to_csv(dfPath)
-dfPath = os.path.join(dfDir, f'm5df_{series}.csv')
+dfPath = os.path.join(dfDir, f'm5df_{series}_{suffix}.csv')
 m5df.to_csv(dfPath)
-dfPath = os.path.join(dfDir, f'Tdf_{series}.csv')
+dfPath = os.path.join(dfDir, f'Tdf_{series}_{suffix}.csv')
 Tdf.to_csv(dfPath)
-dfPath = os.path.join(dfDir, f'Sdf_{series}.csv')
+dfPath = os.path.join(dfDir, f'Sdf_{series}_{suffix}.csv')
 Sdf.to_csv(dfPath)

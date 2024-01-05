@@ -8,11 +8,17 @@ from lsst.daf.persistence import Butler, NoResults
 
 from rubin_sim.photUtils import PhotometricParameters, Bandpass, Sed, LSSTdefaults
 from rubin_sim.utils import angularSeparation
+from rubin_sim.site_models import SeeingModel
 import syseng_throughputs as st
 
 
 # Read substitute readnoise files
+#Run 13040 has 2.232 sec Readout
+#Run 13057 has 2.090 sec Readout
+#Run 13060 has 2.374 sec Readout
+
 series = '13057'
+series = '13040'
 filename = f'readnoise_{series}.pkl'
 readnoise_val = pd.read_pickle(filename)
 
@@ -85,7 +91,8 @@ wavelen = atmos.wavelen
 for f in filters:
     sb = mirror1.sb * mirror2.sb * mirror3.sb
     sb *= lens1.sb * lens2.sb * lens3.sb * filters[f].sb
-    sb *= detLosses.sb
+    if addLosses:
+        sb *= detLosses.sb
     hardware_nodet[f] = Bandpass()
     hardware_nodet[f].setBandpass(wavelen, sb)
     system_nodet[f] = Bandpass()
@@ -247,10 +254,12 @@ for det in cam:
         effarea = adf[key]['effarea'][iamp]*100**2 #convert to cm^2
         readnoise = adf[key]['readnoise'][iamp]
 
-        # 2x15s visits
+        othernoise = 0
+        darkcurrent = 0.2
+
         m5 = st.makeM5(hardware, system, darksky=darksky,
-                    exptime=15, nexp=2, readnoise=readnoise, othernoise=0, darkcurrent=0.2,
-                    effarea=effarea, X=1.0)
+                    exptime=15, nexp=2, readnoise=readnoise, othernoise=othernoise, darkcurrent=darkcurrent,
+                    effarea=effarea, X=1.0, fwhm500=None)
         for f in filters:
             m5df[key][f][iamp] = m5.m5[f]
             Tdf[key][f][iamp] = m5.Tb[f]
@@ -261,8 +270,8 @@ for det in cam:
         
         # 1x30s visits
         m5 = st.makeM5(hardware, system, darksky=darksky,
-                    exptime=30, nexp=1, readnoise=readnoise, othernoise=0, darkcurrent=0.2,
-                    effarea=effarea, X=1.0)
+                    exptime=30, nexp=1, readnoise=readnoise, othernoise=othernoise, darkcurrent=darkcurrent,
+                    effarea=effarea, X=1.0, fwhm500=None)
         for f in filters:
             m5df[key][f'{f}_30'][iamp] = m5.m5[f]
 
